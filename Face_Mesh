@@ -1,0 +1,43 @@
+import cv2
+import time
+import mediapipe as mp
+
+
+pTime = 0
+
+cap = cv2.VideoCapture('face1.mp4')                               #file name as face1.mp4
+mpDraw = mp.solutions.drawing_utils                               #call the method of drawing tool
+
+mpFaceMesh = mp.solutions.face_mesh   
+
+#call the method of face point detection: defined by the maximum number of face(s), the confidence of detection and tracking
+faceMesh = mpFaceMesh.FaceMesh(max_num_faces=2, min_detection_confidence=0.8, min_tracking_confidence=0.8)
+
+#define the drawing points: color (must apply a tuple of BGR color space), thickness, circle radius)
+drawSpec = mpDraw.DrawingSpec(color= (0,255,0), thickness = 1 , circle_radius= 1)         
+
+
+#loop for video
+while True:
+    ret,frame = cap.read()
+    vidRGB = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+    
+    #Processes an RGB image and returns the face landmarks on each detected face
+    result = faceMesh.process(vidRGB)
+    
+    if result.multi_face_landmarks:
+        for facelm in result.multi_face_landmarks:
+            mpDraw.draw_landmarks(frame,facelm, mpFaceMesh.FACEMESH_CONTOURS,
+                                  drawSpec,drawSpec)
+    
+    #FPS part
+    cTime = time.time()
+    fps = 1/(cTime-pTime)
+    pTime = cTime
+    cv2.putText(frame, f'FPS: {int(fps)}', (20,30), cv2.FONT_HERSHEY_PLAIN,1,(0,0,255),2)
+    cv2.imshow('Khung Hinh',frame)
+    cv2.waitKey(15)
+
+cap.release()
+cv2.destroyAllWindows()
+
